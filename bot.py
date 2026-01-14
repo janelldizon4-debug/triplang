@@ -88,5 +88,5 @@ def show_key(call):
         f"🔐 ACCESS KEY:\n{user['accessKey']}",
         show_alert=True
     )
-
+bot.remove_webhook()
 bot.infinity_polling()
