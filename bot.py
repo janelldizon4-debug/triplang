@@ -1,8 +1,10 @@
 import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from datetime import datetime
+import secrets
+import time
 
-BOT_TOKEN = "8389171340:AAGflq0Tzt2hmT0AZvKLD859Rw9IPOFggmw"
+BOT_TOKEN = "8389171340:AAH9WLzcrTzTUpNXIK3hmWso_mMMc_9jMB0"  
 REDIRECT_URL = "https://test1-murex-six.vercel.app/"
 
 bot = telebot.TeleBot(BOT_TOKEN)
@@ -25,6 +27,8 @@ REGISTERED_KEYS = [
         "telegram_id": 987654321
     }
 ]
+
+TOKENS = {}
 
 def get_user(tid):
     for u in REGISTERED_KEYS:
@@ -55,18 +59,26 @@ def start(message):
         bot.send_message(tid, "⏰ Your subscription has expired.")
         return
 
-    hidden_link = f"{REDIRECT_URL}?tid={tid}&key={user['accessKey']}"
+    
+    token = secrets.token_urlsafe(32)
+    TOKENS[token] = {
+        "telegram_id": tid,
+        "expires": time.time() + 30
+    }
+
+    hidden_link = f"{REDIRECT_URL}?token={token}"
 
     text = (
-        "👋 Welcome\n\n"
-        f"👤 Username: {user['name']}\n"
-        f"🆔 Telegram ID: {tid}\n"
-        f"🔐 Access Key: (click button below)\n"
-    )
+    "👋 Welcome\n\n"
+    f"👤 Username: {user['name']}\n"
+    f"🆔 Telegram ID: {tid}\n"
+    f"📦 Subscription: {user['subscription']}\n"
+    f"🔐 Access Key: (click button below)\n"
+)
 
     kb = InlineKeyboardMarkup()
     kb.add(
-        InlineKeyboardButton("🔑 SHOW ACCESS KEY", callback_data="show_key"),
+        InlineKeyboardButton("🔑 SHOW ACCESS KEY", callback_data="show_key")
     )
     kb.add(
         InlineKeyboardButton("🌐 OPEN WEB TOOL", url=hidden_link)
@@ -88,5 +100,6 @@ def show_key(call):
         f"🔐 ACCESS KEY:\n{user['accessKey']}",
         show_alert=True
     )
+
 bot.remove_webhook()
 bot.infinity_polling()
